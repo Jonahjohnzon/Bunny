@@ -24,3 +24,70 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.prose-dark h1 {
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.prose-dark h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.prose-dark h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.prose-dark p {
+  font-size: 0.875rem;
+}
+
+.prose-dark ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin: 0.75rem 0;
+}
+
+.prose-dark ol {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+  margin: 0.75rem 0;
+}
+
+.prose-dark li {
+  margin: 0.25rem 0;
+  color: inherit; /* or your dark-mode text color, e.g. #e5e7eb */
+}
+
+.prose-dark li::marker {
+  color: #9ca3af; /* muted marker color, optional */
+}
+
+/* nested lists */
+.prose-dark ul ul,
+.prose-dark ol ol,
+.prose-dark ul ol,
+.prose-dark ol ul {
+  margin: 0.25rem 0 0.25rem 1rem;
+}
+
+.prose-dark a {
+  color: #4b8ef1;
+  text-decoration: underline;
+  text-decoration-color: rgba(75, 142, 241, 0.4);
+  text-underline-offset: 2px;
+  transition: color 0.15s ease;
+   cursor: pointer;
+}
+
+.prose-dark a:hover {
+  color: #6aa3f5;
+  text-decoration-color: #6aa3f5;
+}
+
+.prose-dark a:visited {
+  color: #8a7bc7;
+}
+
