@@ -7,7 +7,7 @@ import { withAuth } from "../../../lib/middleware/auth";
 import { ok, fail, serverError } from "../../../lib/response";
 
 // GET — full thread, marks incoming messages as read
-export async function GET(req: Request, { params }: { params: { id: string } }) {
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   return withAuth(req, async (user) => {
     try {
       await mongoosedb();
@@ -36,7 +36,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 }
 
 // DELETE — removes the conversation for both participants (confirmed approach)
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   return withAuth(req, async (user) => {
     try {
       await mongoosedb();

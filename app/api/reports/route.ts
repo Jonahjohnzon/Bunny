@@ -68,35 +68,36 @@ export async function GET(req: Request) {
   });
 }
 
-// PATCH /api/reports/[id] — resolve or dismiss (mods only)
-export async function PATCH(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
-  return withPermission(req, "canManageReports", async (user) => {
-    try {
-      await mongoosedb();
-      const body = await req.json();
+// // PATCH /api/reports/[id] — resolve or dismiss (mods only)
+// export async function PATCH(
+//   req: Request,
+//   { params }: { params: Promise<{ id: string }> }
+// ) {
+//   return withPermission(req, "canManageReports", async (user) => {
+//     try {
+//       await mongoosedb();
+//       const {id} = await params
+//       const body = await req.json();
+      
+//       if (!["resolved", "dismissed"].includes(body.status)) {
+//         return fail("Status must be 'resolved' or 'dismissed'.");
+//       }
 
-      if (!["resolved", "dismissed"].includes(body.status)) {
-        return fail("Status must be 'resolved' or 'dismissed'.");
-      }
+//       const report = await Report.findByIdAndUpdate(
+//         id,
+//         {
+//           status:     body.status,
+//           resolvedBy: user._id,
+//           resolvedAt: new Date(),
+//           notes:      body.notes ?? "",
+//         },
+//         { new: true }
+//       );
 
-      const report = await Report.findByIdAndUpdate(
-        params.id,
-        {
-          status:     body.status,
-          resolvedBy: user._id,
-          resolvedAt: new Date(),
-          notes:      body.notes ?? "",
-        },
-        { new: true }
-      );
-
-      if (!report) return fail("Report not found.", 404);
-      return ok(report);
-    } catch (err) {
-      return serverError(err, "PATCH /api/reports/[id]");
-    }
-  });
-}
+//       if (!report) return fail("Report not found.", 404);
+//       return ok(report);
+//     } catch (err) {
+//       return serverError(err, "PATCH /api/reports/[id]");
+//     }
+//   });
+// }

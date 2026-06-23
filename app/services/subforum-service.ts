@@ -1,6 +1,6 @@
 import ForumApi from '../ApiCore';
 import type { ApiResponse } from './category-service';
-import { Thread } from './threads'; 
+import { Thread } from '../MainPage/types/forum';
 const api = new ForumApi();
 
 // ── Types ─────────────────────────────────────────────────────────────────────

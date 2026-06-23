@@ -14,7 +14,7 @@ import "@/app/lib/models/CategorySchema"
 // Returns subforum + either threads (leadsToThreads=true) or children (false)
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
@@ -32,7 +32,7 @@ export async function GET(
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   return withPermission(req, "canAccessAdmin", async () => {
     try {
@@ -61,7 +61,7 @@ export async function DELETE(
 // PATCH /api/subforums/[id]
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   return withPermission(req, "canAccessAdmin", async () => {
     try {

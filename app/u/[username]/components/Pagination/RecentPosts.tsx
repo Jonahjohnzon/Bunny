@@ -52,7 +52,7 @@ function PostCard({ post }: { post: RecentPost }) {
         </div>
         <ChevronRight
           size={14}
-          className="text-[#4a4b50] group-hover:text-[#8a8d91] flex-shrink-0 mt-1 transition-colors"
+          className="text-[#4a4b50] group-hover:text-[#8a8d91] shrink-0 mt-1 transition-colors"
         />
       </div>
       <div className="flex items-center gap-3 mt-3 pt-3 border-t border-[rgba(255,255,255,0.04)]">

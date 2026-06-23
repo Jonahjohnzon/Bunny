@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { X, Save, Check, User, Settings, Palette, Bell, Loader2 } from 'lucide-react';
+import { X, Save, Check, User, Settings, Loader2 } from 'lucide-react';
 import { ProfileTab, AccountTab, AppearanceTab, NotificationsTab } from './EditTabs';
 import { UserService } from '@/app/services/users';
 import { UserProfile, EditTab } from '../../types';

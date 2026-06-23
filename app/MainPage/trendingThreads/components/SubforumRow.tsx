@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
-import * as LucideIcons from 'lucide-react';
-import { Lock, ChevronRight, MessageSquare, Layers } from 'lucide-react';
+import { Lock, ChevronRight } from 'lucide-react';
 import { formatNumber } from '../../Interfaces/lib/utils';
 import Link from 'next/link';
 import { ApiSubforum } from '@/app/services/category-service';

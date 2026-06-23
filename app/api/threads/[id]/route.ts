@@ -11,7 +11,7 @@ import User from "@/app/lib/models/User";
 // GET /api/threads/[id] — thread info + paginated posts
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   return withOptionalAuth(req, async () => {
     try {
@@ -116,7 +116,7 @@ export async function POST(req: Request) {
 // PATCH /api/threads/[id] — edit title (author or mod)
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   return withAuth(req, async (user) => {
     try {
@@ -159,7 +159,7 @@ export async function PATCH(
 // DELETE /api/threads/[id] — soft delete
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   return withAuth(req, async (user) => {
     try {

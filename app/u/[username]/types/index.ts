@@ -14,6 +14,7 @@ export interface RecentThread {
 }
 
 export interface UserProfile {
+  _id: string
   username: string;
   customTitle: string;
   role: UserRole;

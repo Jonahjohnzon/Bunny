@@ -4,7 +4,7 @@ import { withPermission } from "@/app/lib/middleware/auth";
 import { ok, serverError } from "@/app/lib/response";
 import { updateBadge, deleteBadge } from "@/app/services/badgeService";
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   return withPermission(req, "canAccessAdmin", async () => {
     try {
       await mongoosedb();
@@ -17,7 +17,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
   });
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   return withPermission(req, "canAccessAdmin", async () => {
     try {
       await mongoosedb();

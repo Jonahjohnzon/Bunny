@@ -29,7 +29,7 @@ const loadProfile = useCallback(async () => {
   try {
     const res = await UserService.getProfile(username);
     setProfile(res?.data?.profile);
-  } catch (err) {
+  } catch {
     setError('Could not load this profile.');
   } finally {
     setLoading(false);

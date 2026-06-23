@@ -5,7 +5,6 @@ import { AlertTriangle } from 'lucide-react';
 import Navbar from './MainPage/trendingThreads/components/Navbar';
 import CategoryBlock from './MainPage/trendingThreads/components/CategoryBlock';
 import ForumSidebar from './MainPage/trendingThreads/components/ForumSidebar';
-import { stats, onlineUsers, trendingThreads } from './MainPage/Interfaces/lib/mock-data';
 import { CategoryService, ApiCategory } from './services/category-service';
 import AnnouncementBoard from './MainPage/trendingThreads/components/AnnouncementBoard';
 
@@ -99,7 +98,7 @@ export default function ForumHome() {
           </div>
 
           {/* Sidebar — still on mock data, per scope decision */}
-          <ForumSidebar stats={stats} onlineUsers={onlineUsers} trendingThreads={trendingThreads} />
+          <ForumSidebar />
         </div>
       </main>
     </div>

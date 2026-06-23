@@ -1,10 +1,20 @@
 import { proxy } from "valtio";
 
+interface t {
+  canEditAnyPost:boolean;
+  canEditOwnPost:boolean;
+  canDeleteAnyPost:boolean;
+  canDeleteOwnPost:boolean
+  canDeleteOwnThread:boolean
+  canPinThread:boolean
+  canLockThread:boolean
+}
+
 interface RoleInfo {
   _id: string;
   name: string;
   color: string;
-  permissions:null
+  permissions:t
 }
 
 export const store = proxy({

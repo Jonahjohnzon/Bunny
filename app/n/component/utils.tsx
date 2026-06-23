@@ -1,4 +1,4 @@
-import { MessageSquare, Quote, ThumbsUp, AtSign, AlertTriangle, Mail } from 'lucide-react';
+import { MessageSquare, Quote, ThumbsUp, AtSign, AlertTriangle, Mail, Sailboat } from 'lucide-react';
 import { NotificationType, Notification } from './types';
 
 // ── Type metadata ─────────────────────────────────────────────────────────────
@@ -13,6 +13,7 @@ export const TYPE_META: Record<NotificationType, {
   mention:  { icon: <AtSign size={11} />,        color: '#f59e0b', label: 'mentioned you'              },
   warning:  { icon: <AlertTriangle size={11} />, color: '#ef4444', label: 'issued a warning'           },
   dm:       { icon: <Mail size={11} />,          color: '#ec4899', label: 'sent you a message'         },
+  system:    {icon: <Sailboat size={11} />,      color: '#ec4899', label: 'sent you a notification'}
 };
 
 // ── Avatar colors ─────────────────────────────────────────────────────────────

@@ -1,21 +1,23 @@
 // services/notifications.ts
 import ForumApi from '../ApiCore';
+import { Notification } from '../n/component/types';
 
 const api = new ForumApi();
 
+
 export const NotificationService = {
   list: (page = 1) =>
-    api.get('/notifications', { page }),
+    api.get<{ data: { notifications: Notification[]; total: number; page: number; hasMore:boolean; } }>('/notifications', { page }),
 
   markRead: (id: string) =>
-    api.patch(`/notifications/${id}/read`),
+    api.patch<{ success: boolean }>(`/notifications/${id}/read`),
 
   markAllRead: () =>
-    api.patch('/notifications/read-all'),
+    api.patch<{ success: boolean }>('/notifications/read-all'),
 
   delete: (id: string) =>
-    api.delete(`/notifications/${id}`),
+    api.delete<{ success: boolean }>(`/notifications/${id}`),
 
   clearRead: () =>
-    api.delete('/notifications'),
+    api.delete<{ success: boolean }>('/notifications'),
 };

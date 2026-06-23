@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { ChevronRight, Pin, Lock, Eye, MessageSquare } from 'lucide-react';
 import { prefixStyles, formatNumber } from '../../Interfaces/lib/utils';
-import { Thread, SubforumMeta } from '../../types/forum';
+import { Thread } from '../../types/forum';
 
 interface ThreadViewHeaderProps {
   thread: Thread;

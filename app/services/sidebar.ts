@@ -4,11 +4,14 @@ import ForumApi from '../ApiCore';
 const api = new ForumApi();
 
 interface ProfileSidebarResponse {
+  data:{
   badges: {
     id: string; key: string; label: string; description: string;
     icon: string; color: string; tier: string; awardedAt: string;
   }[];
   activity: { label: string; value: string }[];
+},
+ success:boolean
 }
 
 export const sideService = {

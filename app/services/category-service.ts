@@ -29,7 +29,8 @@ export interface ApiSubforum {
   isReadOnly?: boolean;
   isNew?: boolean;
   category: string;
-  updatedAt:Date
+  updatedAt:Date;
+  leadsToThreads:boolean
 }
 
 export interface ApiCategory {

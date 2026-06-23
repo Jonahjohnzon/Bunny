@@ -33,9 +33,9 @@ export interface ForumStats {
 
 // ── Thread-related types (mirrors models/Thread.ts) ────────────────────────
 export interface ThreadUser {
-  id: string;
-  username: string;
-  avatar: string; // single letter used by <Avatar />
+  _id?: string;
+  username?: string;
+  avatar?: string; // single letter used by <Avatar />
   role?: 'admin' | 'moderator' | 'member';
 }
 
@@ -51,15 +51,19 @@ export interface Thread {
   isDeleted: boolean;
   views: number;
   replyCount: number;
-  prefix: ThreadPrefix;
+  prefix: ThreadPrefix | null;
   tags: string[];
   lastPost: {
     user: ThreadUser;
     createdAt: Date; // ISO date or relative label
   } | null;
   createdAt: Date;
-  subforum: string; 
-  image?: string;
+  subforum?: {
+    _id:string;
+    name:string
+  }; 
+  image: string;
+  updatedAt:Date
 
 }
 
@@ -137,9 +141,11 @@ export interface Post {
   quotedPost?: QuotedPostPreview | null;
   attachments: string[];
   reactionCount: ReactionCount;
-  createdAt: string;
+  createdAt: Date;
   postNumber: number; // #1, #2... display order within thread
   myReaction?:string;
+  body:string;
+  updatedAt:Date
 }
 
 export interface Badge {

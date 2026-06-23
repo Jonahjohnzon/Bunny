@@ -1,11 +1,10 @@
 "use client";
 import { RichEditor } from '../threadcomponent/RichEditor'; // adjust this path to match where RichEditor actually lives
 import { PostService } from '../../../services/posts';      // adjust this path to match your services folder
-import { Post, ForumUser } from '../../types/forum';
+import { Post } from '../../types/forum';
 
 interface ReplyBoxProps {
   threadId: string;
-  currentUser: ForumUser;
   parentPost?: string;        // omit for a top-level reply; set it for a Reddit-style reply attached to a post
   nextPostNumber?: number;    // kept for backward compatibility with the top-level call site; unused here
   onPostCreated: (post: Post) => void;
@@ -15,7 +14,6 @@ interface ReplyBoxProps {
 
 export default function ReplyBox({
   threadId,
-  currentUser,
   parentPost,
   onPostCreated,
   onCancel,
@@ -35,7 +33,7 @@ export default function ReplyBox({
       submitLabel={parentPost ? "Reply" : "Post Reply"}
       onSubmit={handleSubmit}
       onCancel={onCancel}
-      footerNote={compact ? undefined : `Replying as ${currentUser.username}`}
+      footerNote={compact ? undefined : `Replying`}
       height={'min-h-45'}
     />
   );

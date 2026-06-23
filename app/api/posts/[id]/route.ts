@@ -17,7 +17,7 @@ import Subforum from "@/app/lib/models/SubforumSchema";
 // DELETE /api/posts/[id] — soft delete
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   return withAuth(req, async (user) => {
     try {
@@ -62,7 +62,7 @@ export async function DELETE(
 // PATCH /api/posts/[id] — edit post content
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }:{ params: Promise<{ id: string }> }
 ) {
   return withAuth(req, async (user) => {
     try {

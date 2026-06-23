@@ -7,7 +7,7 @@ import { withPermission } from "../../../../lib/middleware/auth";
 import { ok, fail, serverError } from "../../../../lib/response";
 
 
-export async function PATCH(req: Request, { params }: { params: { userId: string } }) {
+export async function PATCH(req: Request, { params }: { params: Promise<{ userId: string }> }) {
   return withPermission(req, "canAccessAdmin", async (requester: { _id: string }) => {
     try {
       await mongoosedb();

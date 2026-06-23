@@ -16,13 +16,13 @@ export interface Badge {
 
 export const BadgeService = {
   list: () =>
-    api.get<{ badges: Badge[] }>('/admin/badges'),
+    api.get<{ data: { badges: Badge[] } }>('/admin/badges'),
 
   create: (data: Omit<Badge, '_id' | 'isDefault'> & { isDefault?: boolean }) =>
-    api.post<{ badge: Badge }>('/admin/badges', data),
+    api.post<{ data:{badge: Badge} }>('/admin/badges', data),
 
   update: (id: string, data: Partial<Badge>) =>
-    api.patch<{ badge: Badge }>(`/admin/badges/${id}`, data),
+    api.patch<{ data:{badge: Badge} }>(`/admin/badges/${id}`, data),
 
   delete: (id: string) =>
     api.delete<{ deleted: boolean }>(`/admin/badges/${id}`),

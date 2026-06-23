@@ -14,7 +14,7 @@ type ReactionType = typeof VALID_REACTIONS[number];
 // POST /api/posts/[id]/reactions — toggle a reaction
 export async function POST(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   return withAuth(req, async (user) => {
     try {

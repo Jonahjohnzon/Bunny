@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { Mail, Send, Trash2, ArrowLeft } from 'lucide-react';
 import Avatar from '@/app/MainPage/trendingThreads/components/Avatar';
 import { MessageService } from '@/app/services/messages';
-import { ConversationPreview, Conversation, MessageUser } from '../types';
+import {   MessageUser } from '../types';
+import { Conversation } from '@/app/services/messages';
 import { useSnapshot } from 'valtio';
 import { store } from '@/app/store';
 
@@ -14,7 +15,7 @@ export default function MessagesPageClient({ activeId }: { activeId?: string }) 
   const snap = useSnapshot(store);
   const myId = snap._id;
 
-  const [conversations, setConversations] = useState<ConversationPreview[]>([]);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loadingList, setLoadingList] = useState(true);
   const [active, setActive] = useState<Conversation | null>(null);
   const [loadingThread, setLoadingThread] = useState(false);
@@ -34,7 +35,7 @@ export default function MessagesPageClient({ activeId }: { activeId?: string }) 
     setLoadingThread(true);
     MessageService.getConversation(activeId)
       .then(res => {
-        setActive(res.data.conversation);
+        setActive(res?.data?.conversation );
         setConversations(prev => prev.map(c => c._id === activeId ? { ...c, unread: false } : c));
       })
       .catch(err => console.log('Failed to load conversation', err))
@@ -43,7 +44,7 @@ export default function MessagesPageClient({ activeId }: { activeId?: string }) 
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [active?.messages.length]);
+  }, [active?.messages?.length]);
 
   const handleSend = async () => {
     const content = draft.trim();

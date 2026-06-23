@@ -24,13 +24,13 @@ interface ThreadListProps {
 export default function ThreadList({ threads: initialThreads, accentColor, subforumId }: ThreadListProps) {
   const [threads, setThreads] = useState<Thread[]>(initialThreads);
 
-  const handleDeleted = useCallback((id: string) => {
+  const handleDeleted = useCallback((id: string | undefined) => {
     setThreads(prev => prev.filter(t => t._id !== id));
   }, []);
-
-  const handleUpdated = useCallback((id: string, patch: ThreadUpdateBody) => {
-    setThreads(prev => prev.map(t => t._id === id ? { ...t, ...patch } : t));
-  }, []);
+ 
+  const handleUpdated = useCallback((id: string | undefined, patch: ThreadUpdateBody) => {
+  setThreads(prev => prev.map(t => t._id === id ? { ...t, ...(patch as Partial<Thread>) } : t));
+}, []);
 
   const pinned  = threads.filter(t => t.isPinned);
   const regular = threads.filter(t => !t.isPinned);

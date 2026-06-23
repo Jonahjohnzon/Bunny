@@ -30,8 +30,8 @@ interface ThreadRowProps {
       canEditAnyPost?: boolean;
     };
   };
-  onDeleted?: (id: string) => void;
-  onUpdated?: (id: string, patch: ThreadUpdateBody) => void;
+  onDeleted?: (id: string | undefined) => void;
+  onUpdated?: (id: string | undefined, patch: ThreadUpdateBody) => void;
 }
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -663,7 +663,7 @@ export default function ThreadRow({
             by <span className="text-[#c8cddb] hover:underline cursor-pointer "  onClick={()=>{
                 router.push(`/u/${thread?.author?.username}`)
               }}>{thread.author?.username}</span>
-            {thread.tags?.length > 0 && (
+            {thread?.tags?.length > 0 && (
               <><span className="mx-1.5 text-[13px]">·</span>{thread.tags.map(t => `#${t}`).join(' ')}</>
             )}
           </p>
@@ -712,7 +712,7 @@ export default function ThreadRow({
         <div className="hidden md:flex font-semibold items-center gap-2.5 w-44 shrink-0">
           {thread.lastPost ? (
             <>
-              <Avatar name={thread.lastPost.user.username} src={thread.lastPost.user.avatar} size="md"  />
+              <Avatar name={thread?.lastPost?.user?.username} src={thread?.lastPost?.user?.avatar} size="md"  />
               <div className="min-w-0" >
                 <p className="text-[#a8b3cf] text-sm truncate font-medium leading-tight  cursor-pointer hover:underline" onClick={()=>{
                 router.push(`/u/${thread?.lastPost?.user?.username}`)

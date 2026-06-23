@@ -8,17 +8,18 @@ import { ok, fail, serverError } from "../../../lib/response";
 // PATCH /api/notifications/[id] — mark single notification as read
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   return withAuth(req, async (user) => {
     try {
       await mongoosedb();
-      const notif = await Notification.findById(params.id);
+      const {id} = await params
+      const notif = await Notification.findById(id);
 
       if (!notif) return fail("Notification not found.", 404);
       if (notif.user.toString() !== user._id) return fail("Not allowed.", 403);
 
-      await Notification.findByIdAndUpdate(params.id, { read: true });
+      await Notification.findByIdAndUpdate(id, { read: true });
       return ok({ message: "Marked as read." });
     } catch (err) {
       return serverError(err, "PATCH /api/notifications/[id]");
@@ -27,7 +28,7 @@ export async function PATCH(
 }
 
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   return withAuth(req, async (user) => {
     try {
       await mongoosedb();

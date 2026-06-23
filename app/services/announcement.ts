@@ -20,28 +20,26 @@ export interface AnnouncementInput {
   type?: Announcement['type'];
   startsAt?: string;
   expiresAt?: string | null;
-  durationHours?: number; // alternative to expiresAt — "expires N hours from now"
+  durationHours?: number;
   isActive?: boolean;
 }
 
 export const AnnouncementService = {
-  // Public — only currently-live announcements
   listActive: () =>
-    api.get<{ announcements: Announcement[] }>('/announcements'),
+    api.get<{ success: boolean; data: { announcements: Announcement[] } }>('/announcements'),
 
-  // Admin/mod — full history including expired/inactive
   listAll: () =>
-    api.get<{ announcements: Announcement[] }>('/admin/announcements'),
+    api.get<{ success: boolean; data: { announcements: Announcement[] } }>('/admin/announcements'),
 
   create: (data: AnnouncementInput) =>
-    api.post<Announcement>('/announcements', data),
+    api.post<{ success: boolean; data: { announcement: Announcement } }>('/announcements', data),
 
   update: (id: string, data: Partial<AnnouncementInput>) =>
-    api.patch<Announcement>(`/announcements/${id}`, data),
+    api.patch<{ success: boolean; data: { announcement: Announcement } }>(`/announcements/${id}`, data),
 
   delete: (id: string) =>
-    api.delete<{ deleted: boolean }>(`/announcements/${id}`),
+    api.delete<{ success: boolean; data: { deleted: boolean } }>(`/announcements/${id}`),
 
   deactivate: (id: string) =>
-    api.patch<Announcement>(`/announcements/${id}`, { isActive: false }),
+    api.patch<{ success: boolean; data: { announcement: Announcement } }>(`/announcements/${id}`, { isActive: false }),
 };

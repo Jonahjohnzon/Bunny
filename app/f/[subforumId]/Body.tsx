@@ -10,7 +10,6 @@ import ForumSidebar from '../../MainPage/trendingThreads/components/ForumSidebar
 import Pagination from '../../MainPage/trendingThreads/components/Pagination';
 import { Thread } from '@/app/MainPage/types/forum';
 import { ApiSubforumFull } from '@/app/services/subforum-service';
-import { stats, onlineUsers, trendingThreads } from '../../MainPage/Interfaces/lib/mock-data';
 import { SubforumService } from '@/app/services/subforum-service';
 import AnnouncementBoard from '@/app/MainPage/trendingThreads/components/AnnouncementBoard';
 
@@ -69,7 +68,7 @@ export default function Body({ params_cc }: SubforumPageProps) {
 
     async function fetchData() {
       setLoading(true);
-      const data = await SubforumService.get(subforumId, page);
+      const data = await SubforumService.get(subforumId, Number(page));
 
       if (cancelled) return;
 
@@ -105,7 +104,7 @@ export default function Body({ params_cc }: SubforumPageProps) {
             <div className="flex-1 min-w-0">
               <SubforumBodySkeleton />
             </div>
-            <ForumSidebar stats={stats} onlineUsers={onlineUsers} trendingThreads={trendingThreads} />
+            <ForumSidebar />
           </div>
         </main>
       </div>
@@ -142,7 +141,7 @@ export default function Body({ params_cc }: SubforumPageProps) {
               <Pagination currentPage={Number(page) ?? 1} totalPages={pages!} basePath={`/f/${subforumId}`} />
             )}
           </div>
-          <ForumSidebar stats={stats} onlineUsers={onlineUsers} trendingThreads={trendingThreads} />
+          <ForumSidebar  />
         </div>
       </main>
     </div>

@@ -6,7 +6,7 @@ import { ok, fail, serverError } from "@/app/lib/response";
 // GET /api/users/[username] — public profile
 export async function GET(
   req: Request,
-  { params }: { params: { username: string } }
+  { params }: { params: Promise<{ username: string }> }
 ) {
   return withOptionalAuth(req, async (viewer) => {
     try {

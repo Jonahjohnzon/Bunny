@@ -1,11 +1,10 @@
 "use client";
 import { useParams } from 'next/navigation';
 import PostCard, { PostNode } from '../threadcomponent/PostCard';
-import { Post, ForumUser } from '../../types/forum';
+import { Post } from '../../types/forum';
 
 interface PostListProps {
-  posts: Post[];
-  currentUser: ForumUser;
+  posts: Post[]
   isLocked?: boolean;
   threadId?:string;
   highlightPostId?: string;

@@ -9,7 +9,7 @@ import Post from "@/app/lib/models/Post";
 // GET /api/users/[username]/threads — paginated thread history
 export async function GET(
   req: Request,
-  { params }: { params: { username: string } }
+  { params }: { params: Promise<{ username: string }> }
 ) {
   return withOptionalAuth(req, async () => {
     try {

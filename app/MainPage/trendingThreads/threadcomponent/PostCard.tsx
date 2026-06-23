@@ -108,7 +108,7 @@ function DeleteModal({
           <div>
             <p className="text-sm font-semibold text-[#e4e6eb] mb-1">Delete this post?</p>
             <p className="text-xs text-[#8a8d91] leading-relaxed">
-              This action can't be undone. The post will be permanently removed.
+              {"This action can't be undone. The post will be permanently removed."}
             </p>
           </div>
         </div>
@@ -305,6 +305,7 @@ export default function PostCard({
     if (idx === -1) return;
     setCollapsed(false);
     if (idx >= visibleReplies) setVisibleReplies(idx + 1);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [highlightPostId, children]);
 
   // Soft-deleted: render a minimal tombstone

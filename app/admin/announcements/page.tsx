@@ -53,7 +53,7 @@ export default function AdminAnnouncementsPage() {
     setError(null);
     try {
       const res = await AnnouncementService.create(data);
-      const created = res.data;
+      const created = res.data.announcement;
       if (!created) return;
       setAnnouncements(prev => [created, ...prev]);
       setSelectedId(created._id);
@@ -69,7 +69,7 @@ export default function AdminAnnouncementsPage() {
     setError(null);
     try {
       const res = await AnnouncementService.update(selected._id, data);
-      const updated = res.data;
+      const updated = res.data.announcement ?? res.data;
       if (!updated) return;
       setAnnouncements(prev => prev.map(a => (a._id === updated._id ? updated : a)));
     } catch (err) {

@@ -81,8 +81,8 @@ export async function generateMetadata({ params, searchParams }: ThreadPageProps
       siteName: "Bunny Forum",
       title: metaTitle,
       description,
-      publishedTime: specificPost?.createdAt ?? thread.createdAt,
-      modifiedTime: thread.updatedAt,
+      publishedTime: new Date(specificPost?.createdAt ?? thread.createdAt).toISOString(),
+      modifiedTime: new Date(thread.updatedAt).toISOString(),
       authors: [author],
       images: [
         {

@@ -5,14 +5,14 @@ import { Mail } from 'lucide-react';
 import Link from 'next/link';
 import Avatar from '@/app/MainPage/trendingThreads/components/Avatar';
 import { MessageService } from '@/app/services/messages';
-import { ConversationPreview } from '../types';
+import { Conversation } from '@/app/services/messages';
 
 const POLL_INTERVAL = 20000;
 
 export function MessagesBell() {
   const [open, setOpen] = useState(false);
   const [unreadConversations, setUnreadConversations] = useState(0);
-  const [previews, setPreviews] = useState<ConversationPreview[]>([]);
+  const [previews, setPreviews] = useState<Conversation[]>([]);
   const ref = useRef<HTMLDivElement>(null);
 
   const pollUnread = useCallback(() => {
@@ -39,7 +39,7 @@ export function MessagesBell() {
     setOpen(v => !v);
     if (!open) {
       MessageService.listConversations()
-        .then(res => setPreviews((res.data.conversations ?? []).slice(0, 5)))
+        .then(res => setPreviews((res?.data?.conversations ?? []).slice(0, 5)))
         .catch(err => console.log('Failed to load conversations', err));
     }
   };

@@ -7,8 +7,6 @@ import ThreadView from '../../../MainPage/trendingThreads/threadcomponent/Thread
 import ForumSidebar from '../../../MainPage/trendingThreads/components/ForumSidebar';
 import { ThreadService } from "@/app/services/threads";
 import { PostService } from "@/app/services/posts";
-import { forumUsers } from '../../../MainPage/Interfaces/lib/mock-posts';
-import { stats, onlineUsers, trendingThreads } from '../../../MainPage/Interfaces/lib/mock-data';
 import { Thread, Post } from '../../../MainPage/types/forum';
 import Pagination from '@/app/MainPage/trendingThreads/components/Pagination';
 import AnnouncementBoard from '@/app/MainPage/trendingThreads/components/AnnouncementBoard';
@@ -73,7 +71,7 @@ export function Body({ params_cc }: ThreadPageProps) {
   const searchParams = useSearchParams();
   const highlightPostId = searchParams.get('post') ?? undefined;
   const highlightPage = searchParams.get('page') ?? undefined;
-  const currentUser = forumUsers.jonah_dev;
+  
 
   useEffect(() => {
     let cancelled = false;
@@ -105,7 +103,7 @@ export function Body({ params_cc }: ThreadPageProps) {
 
       const [threadRes, postsRes] = await Promise.all([
         ThreadService.get(threadId),
-        PostService.list(threadId, targetPage),
+        PostService.list(threadId,  Number(targetPage)),
       ]);
 
       if (cancelled) return;
@@ -116,7 +114,7 @@ export function Body({ params_cc }: ThreadPageProps) {
         return;
       }
 
-      setThread(threadRes?.data?.thread);
+      setThread(threadRes?.data?.thread as Thread);
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const data = (postsRes as any)?.success ? (postsRes as any).data : null;
@@ -147,7 +145,7 @@ export function Body({ params_cc }: ThreadPageProps) {
             <div className="flex-1 min-w-0">
               <ThreadViewSkeleton />
             </div>
-            <ForumSidebar stats={stats} onlineUsers={onlineUsers} trendingThreads={trendingThreads} />
+            <ForumSidebar  />
           </div>
         </main>
       </div>
@@ -187,7 +185,7 @@ export function Body({ params_cc }: ThreadPageProps) {
                 basePath={`/f/${subforumId}/${threadId}`}
               />
             )}
-            <ThreadView thread={thread} initialPosts={posts} currentUser={currentUser} highlightPostId={highlightPostId} />
+            <ThreadView thread={thread} initialPosts={posts} highlightPostId={highlightPostId} />
 
             {totalPages > 1 && (
               <Pagination
@@ -198,7 +196,7 @@ export function Body({ params_cc }: ThreadPageProps) {
             )}
           </div>
 
-          <ForumSidebar stats={stats} onlineUsers={onlineUsers} trendingThreads={trendingThreads} />
+          <ForumSidebar  />
         </div>
       </main>
     </div>

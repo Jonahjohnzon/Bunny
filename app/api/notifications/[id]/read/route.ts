@@ -5,7 +5,7 @@ import Notification from "@/app/lib/models/Notification";
 import { withAuth } from "../../../../lib/middleware/auth";
 import { ok, fail, serverError } from "../../../../lib/response";
 
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   return withAuth(req, async (user) => {
     try {
       await mongoosedb();

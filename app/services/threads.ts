@@ -1,23 +1,16 @@
 import ForumApi from '../ApiCore';
+import { Thread } from '../MainPage/types/forum';
 
 const api = new ForumApi();
 
-export interface Thread {
-  _id: string;
-  title: string;
-  subforum: string;
-  image?: string;
-  author: { username: string; avatar: string };
-  isPinned: boolean;
-  isLocked: boolean;
-  replyCount: number;
-  views: number;
-  createdAt: string;
-  prefix: string;
+
+
+export interface t {
+  thread:Thread
 }
 
 export interface Data {
-  data: Thread;
+  data: t;
   success: boolean;
 }
 
@@ -45,7 +38,7 @@ export const ThreadService = {
   list: (subforumId: string, page = 1) =>
     api.get<ApiResponse<PaginatedThreads>>(`/subforums/${subforumId}/threads`, { page }),
 
-  getById: (threadId: string) =>
+  getById: (threadId: string | undefined) =>
     api.get<ApiResponse<Thread & { content: string; tags: string[]; prefix: string }>>(`/threads/${threadId}`),
 
   // keep old name as alias so existing callers don't break
@@ -62,15 +55,15 @@ export const ThreadService = {
     tags:       string[];
   }) => api.post<Data>('/threads/new', body),
 
-  update: (threadId: string, body: ThreadUpdateBody) =>
+  update: (threadId: string | undefined, body: ThreadUpdateBody) =>
     api.patch<ApiResponse<Thread>>(`/threads/${threadId}`, body),
 
-  delete: (threadId: string) =>
+  delete: (threadId: string | undefined) =>
     api.delete<ApiResponse<{ deleted: boolean }>>(`/threads/${threadId}`),
 
-  lock: (threadId: string) =>
+  lock: (threadId: string | undefined) =>
     api.patch<ApiResponse<Thread>>(`/threads/${threadId}/lock`),
 
-  pin: (threadId: string) =>
+  pin: (threadId: string | undefined) =>
     api.patch<ApiResponse<Thread>>(`/threads/${threadId}/pin`),
 };

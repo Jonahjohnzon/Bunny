@@ -60,7 +60,7 @@ export async function GET(
 // PATCH /api/categories/[id]
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   return withPermission(req, "canManageCategories", async () => {
     try {
@@ -85,13 +85,13 @@ export async function PATCH(
 // DELETE /api/categories/[id]
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   return withPermission(req, "canManageCategories", async () => {
     try {
       await mongoosedb();
       const { id } = await params;
-      const hasSubforums = await Subforum.exists({ category: params.id });
+      const hasSubforums = await Subforum.exists({ category: id });
       if (hasSubforums) {
         return fail("Remove or move all subforums before deleting this category.", 400);
       }

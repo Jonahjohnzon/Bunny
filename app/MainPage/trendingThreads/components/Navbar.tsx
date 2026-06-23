@@ -41,8 +41,8 @@ export default function Navbar() {
   useEffect(() => {
     if (!id) return;
     NotificationService.list(1)
-      .then(res => setNotifications(res?.data?.notifications ?? []))
-      .catch(err => console.error('Failed to load notifications', err));
+       .then(res => setNotifications(res?.data?.notifications ?? []))
+       .catch(err => console.log('Failed to load notifications', err));
   }, [id]);
 
   // close mobile menu on route change

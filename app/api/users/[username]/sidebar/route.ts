@@ -8,7 +8,7 @@ import { getProfileSidebarData } from "@/app/services/profileSidebarService";
 // GET /api/users/[username]/sidebar
 export async function GET(
   req: Request,
-  { params }: { params: { username: string } }
+  { params }: { params: Promise<{ username: string }> }
 ) {
   return withOptionalAuth(req, async (viewer) => {
     try {

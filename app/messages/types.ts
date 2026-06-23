@@ -8,4 +8,4 @@ export interface ConversationPreview {
   unread: boolean;
   lastMessageAt: string;
 }
-export interface Conversation { _id: string; participants: MessageUser[]; messages: DMMessage[]; lastMessageAt: string; }
+export interface Conversations { _id: string; participants: MessageUser[]; messages: DMMessage[]; lastMessageAt: string; }

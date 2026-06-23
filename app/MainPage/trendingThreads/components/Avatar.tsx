@@ -4,7 +4,7 @@ import { avatarColors } from '../../Interfaces/lib/utils';
 import { useRouter } from 'nextjs-toploader/app';
 
 interface AvatarProps {
-  name: string;
+  name?: string;
   src?: string | null;
   size?: 'sm' | 'md' | 'lg' | 'xl' | 'xxl';
 }

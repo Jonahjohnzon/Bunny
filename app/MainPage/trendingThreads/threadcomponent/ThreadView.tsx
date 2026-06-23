@@ -3,16 +3,15 @@ import { useState } from 'react';
 import { Lock } from 'lucide-react';
 import PostList from './PostList';
 import ReplyBox from './ReplyBox';
-import { Post, ForumUser, Thread } from '../../types/forum';
+import { Post, Thread } from '../../types/forum';
 
 interface ThreadViewProps {
   thread: Thread;
   initialPosts: Post[];
-  currentUser: ForumUser;
   highlightPostId?: string;
 }
 
-export default function ThreadView({ thread, initialPosts, currentUser, highlightPostId }: ThreadViewProps) {
+export default function ThreadView({ thread, initialPosts, highlightPostId }: ThreadViewProps) {
   const [posts, setPosts] = useState(initialPosts);
   
   function handlePostCreated(post: Post) {
@@ -24,7 +23,6 @@ export default function ThreadView({ thread, initialPosts, currentUser, highligh
       <PostList
         threadId={thread?._id}
         posts={posts}
-        currentUser={currentUser}
         isLocked={thread?.isLocked}
         highlightPostId={highlightPostId}
       />
@@ -36,8 +34,7 @@ export default function ThreadView({ thread, initialPosts, currentUser, highligh
         </div>
       ) : (
         <ReplyBox
-          threadId={thread?._id}
-          currentUser={currentUser}
+          threadId={thread?._id || ""}
           nextPostNumber={posts.length + 1}
           onPostCreated={handlePostCreated}
         />

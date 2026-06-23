@@ -11,7 +11,7 @@ import '@/app/lib/models/SubforumSchema'
 // GET /api/users/[username]/posts — paginated post history
 export async function GET(
   req: Request,
-  { params }: { params: { username: string } }
+  { params }: { params: Promise<{ username: string }> }
 ) {
   return withOptionalAuth(req, async () => {
     try {

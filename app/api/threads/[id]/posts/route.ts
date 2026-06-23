@@ -27,7 +27,7 @@ const AUTHOR_POPULATE = {
 // underneath that page's posts, so the client can build the full tree.
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   return withAuth(req, async (user) => {
     try {

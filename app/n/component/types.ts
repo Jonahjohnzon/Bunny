@@ -1,4 +1,4 @@
-export type NotificationType = 'reply' | 'quote' | 'reaction' | 'mention' | 'warning' | 'dm';
+export type NotificationType = 'reply' | 'quote' | 'reaction' | 'mention' | 'warning' | 'dm' | 'system';
 
 export interface Actor {
   _id: string;
@@ -11,8 +11,9 @@ export interface Notification {
   type: NotificationType;
   read: boolean;
   actor: Actor;
-  thread?: { _id: string; title: string };
+  thread?: { _id: string; title: string, subforum:string };
   post?: { _id: string };
   createdAt: string;
   message:string;
+  
 }

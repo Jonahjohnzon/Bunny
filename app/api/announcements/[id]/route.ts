@@ -9,7 +9,7 @@ import { ok, fail, serverError } from "@/app/lib/response";
 // PATCH /api/announcements/[id]
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   return withPermission(req, "canAccessAdmin", async (user) => {
     try {
@@ -63,7 +63,7 @@ export async function PATCH(
 // DELETE /api/announcements/[id]
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   return withPermission(req, "canAccessAdmin", async (user) => {
     try {

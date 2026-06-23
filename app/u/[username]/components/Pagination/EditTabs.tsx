@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { Camera, Eye, EyeOff, AlertTriangle, Check, MapPin, Globe, Bird, GitFork } from 'lucide-react';
+import { Camera, Eye, EyeOff, AlertTriangle, Check, MapPin, Globe} from 'lucide-react';
 import {  Field, Toggle, SectionCard } from '../ui';
 import { themes } from '../../data/mockData';
 import { UserProfile } from '../../types';
@@ -124,7 +124,7 @@ export function AccountTab({ profile, passwordData, onPasswordChange }: AccountT
             <p className="text-sm font-medium text-[#e4e6eb]">Delete account</p>
             <p className="text-xs text-[#8a8d91] mt-0.5">Permanently deletes your account and all posts. Cannot be undone.</p>
           </div>
-          <button className="px-3 py-1.5 text-xs font-semibold text-[#ef4444] border border-[#ef444440] rounded-md hover:bg-[#ef44440f] transition-colors flex-shrink-0 ml-4">
+          <button className="px-3 py-1.5 text-xs font-semibold text-[#ef4444] border border-[#ef444440] rounded-md hover:bg-[#ef44440f] transition-colors shrink-0 ml-4">
             Delete account
           </button>
         </div>
