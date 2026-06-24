@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
-import { X, Save, Check, User, Settings, Palette, Bell, Loader2 } from 'lucide-react';
-import { ProfileTab, AccountTab, AppearanceTab, NotificationsTab } from './EditTabs';
+import { X, Save, Check, User, Settings, Palette, Loader2 } from 'lucide-react';
+import { ProfileTab, AccountTab, AppearanceTab,} from './EditTabs';
 import { UserService } from '@/app/services/users';
 import { UserProfile, EditTab } from '../../types';
 import { UsernameEffectKey } from '../ui/UsernameEffect';
@@ -62,7 +62,7 @@ export function EditProfile({ profile, onCancel, onSaved }: EditProfileProps) {
   });
 
   // ── Appearance state ───────────────────────────────────────────────────────
-  const [themeId,          setThemeId         ] = useState(profile.theme ?? 'dark-default');
+  const [themeId,          setThemeId         ] = useState('dark-default');
   const [usernameEffect,   setUsernameEffect  ] = useState<UsernameEffectKey>(
     (profile.usernameEffect as UsernameEffectKey) ?? null
   );

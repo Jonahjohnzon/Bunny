@@ -14,7 +14,7 @@ export default function ConfirmModal({
   requireHours?: boolean;
   onConfirm: (reason: string, hours?: number) => void;
   onClose: () => void;
-  loading : boolean
+  loading? : boolean
 }) {
   const [reason, setReason] = useState('');
   const [hours, setHours] = useState('');

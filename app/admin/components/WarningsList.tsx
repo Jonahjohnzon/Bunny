@@ -16,7 +16,7 @@ export default function WarningsList({ warnings }: { warnings: Warning[] }) {
           <div className="min-w-0">
             <p className="text-xs text-[#a8b3cf]">{w.reason}</p>
             <p className="text-[10px] text-[#4a4b50] mt-0.5">
-              {w.issuedBy} · {formatDateTime(w.issuedAt)}
+              {/* {w.issuedBy} · {formatDateTime(w.issuedAt)} */}
             </p>
           </div>
         </div>

@@ -135,6 +135,7 @@ export interface UserProfile {
   isOwnProfile: boolean;
 
   ipAddress: string;
+  location:string;
 }
 
 

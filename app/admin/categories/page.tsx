@@ -289,6 +289,7 @@ export default function AdminCategoriesPage() {
           confirmLabel="Delete category"
           onConfirm={() => handleDelete(categoryPendingDelete._id)}
           onClose={() => setDeletingId(null)}
+          loading = {loading}
         />
       )}
     </div>
