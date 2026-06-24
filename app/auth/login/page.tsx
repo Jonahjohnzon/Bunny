@@ -80,7 +80,7 @@ export default function LoginPage() {
         {/* Email */}
         <div className="flex flex-col gap-2">
           <label htmlFor="login-id" className="text-sm font-semibold text-(--text-secondary)">
-            Username or email
+            Email
           </label>
           <div className="relative">
             <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-(--text-muted)" />
