@@ -9,7 +9,13 @@ import * as yup from "yup";
 import bcrypt from "bcrypt";
 
 const loginSchema = yup.object().shape({
-  email: yup.string().email().required(),
+    email: yup
+    .string()
+    .required('Email is required')
+    .matches(
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+      'Invalid email format'
+    ),
   password: yup.string().required().min(4),
 });
 

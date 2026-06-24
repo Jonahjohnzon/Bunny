@@ -9,7 +9,13 @@ import bcrypt from "bcrypt";
 
 const registrationSchema = yup.object().shape({
   username: yup.string().required('Username is required').min(3).max(15),
-  email: yup.string().email('Invalid email format').required('Email is required'),
+   email: yup
+    .string()
+    .required('Email is required')
+    .matches(
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+      'Invalid email format'
+    ),
   password: yup.string().required('Password is required').min(8),
 });
 
