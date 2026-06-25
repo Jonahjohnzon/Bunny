@@ -525,3 +525,8 @@ body {
   overflow: hidden;       /* add this */
   isolation: isolate;     /* add this */
 }
+
+* {
+  animation: none !important;
+  transition: none !important;
+}
