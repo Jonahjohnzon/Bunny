@@ -89,7 +89,7 @@ export function EditProfile({ profile, onCancel, onSaved }: EditProfileProps) {
           avatar:      formData.avatar,
           banner:      formData.banner,
         });
-        router.refresh();
+        
         onSaved?.();
         flashSaved();
         
@@ -113,23 +113,24 @@ export function EditProfile({ profile, onCancel, onSaved }: EditProfileProps) {
           });
           setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
         }
-        router.refresh();
+        onSaved?.();
         flashSaved();
         
 
       } else if (tab === 'appearance') {
-        await UserService.updateAppearance({
+       await UserService.updateAppearance({
           theme:          themeId,
           usernameEffect: usernameEffect ?? null,
           avatarEffect:   avatarEffect   ?? null,
         });
-         router.refresh();
-        flashSaved();
+        
+      onSaved?.();
+      flashSaved();
        
 
       } else {
         // notifications — local-only for now
-        router.refresh();
+        
         flashSaved();
       }
     } catch {

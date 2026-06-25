@@ -88,7 +88,7 @@ export default function LoginPage() {
               id="login-id"
               type="text"
               autoComplete="username"
-              placeholder="jonah_dev"
+              placeholder="example@email.com"
               {...formik.getFieldProps('email')}
               className={`w-full bg-(--bg-input) border rounded-lg pl-10 pr-4 py-3 text-sm font-medium text-(--text-primary) placeholder:text-(--text-muted) outline-none transition-colors
                 ${fieldError('email') ? 'border-(--danger)' : 'border-(--border-soft) focus:border-(--accent)'}`}
