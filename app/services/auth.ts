@@ -1,5 +1,7 @@
 // services/auth.ts
 import ForumApi from '../ApiCore';
+import { AvatarEffectKey } from '../MainPage/trendingThreads/components/Avatar';
+import { UsernameEffectKey } from '../u/[username]/components/ui/UsernameEffect';
 
 const api = new ForumApi();
 
@@ -21,6 +23,8 @@ export interface AuthUser {
   isVerified: boolean;
   avatar : string;
   theme : string
+  usernameEffect:UsernameEffectKey
+  avatarEffect:AvatarEffectKey
 }
 
 export interface AuthResponse {

@@ -90,6 +90,8 @@ export const POST = async (req) => {
         avatar: info.avatar,
         isVerified: info.isVerified,
         theme: info.theme,
+        usernameEffect:info.usernameEffect,
+        avatarEffect: info.avatarEffect
       },
       token,
     });

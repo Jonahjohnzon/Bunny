@@ -35,6 +35,9 @@ export default function LoginPage() {
           store.avatar = data.avatar;
           store.isVerified = data.isVerified;
           store.theme = data.theme;
+          // cast to any to satisfy store typings in this isolated file
+          store.usernameEffect = (data?.usernameEffect ?? null) as any;
+          store.avatarEffect = (data?.avatarEffect ?? null) as any;
           router.replace('/');
         } else {
           setServerError(res.message ?? 'Login failed.');

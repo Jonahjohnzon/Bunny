@@ -1,5 +1,5 @@
 'use client';
-import { Edit3, MessageSquare, Ban, CheckCircle, FileText, ThumbsUp, Calendar, BellOff, Bell } from 'lucide-react';
+import { Edit3, MessageSquare, Ban, CheckCircle, FileText, ThumbsUp, Calendar, BellOff, Bell, ArrowLeft} from 'lucide-react';
 import { StatPill } from '../ui';
 import { UserProfile } from '../../types';
 import Avatar from '@/app/MainPage/trendingThreads/components/Avatar';
@@ -78,7 +78,13 @@ export function ProfileHeader({ profile, onEdit, total }: ProfileHeaderProps) {
               ? `url(${profile.banner})`
               : 'radial-gradient(circle at 30% 50%, #4b8ef133 0%, transparent 60%), radial-gradient(circle at 70% 30%, #10b98133 0%, transparent 50%)',
           }}
-        />
+        ><div className=' hidden sm:block ml-10 mt-5 cursor-pointer' onClick={()=>{
+          router.push('/')
+        }}>
+          <ArrowLeft size={30} />
+        </div>
+        </div>
+        
       </div>
 
       <div className="max-w-6xl mx-auto px-3 sm:px-4">
