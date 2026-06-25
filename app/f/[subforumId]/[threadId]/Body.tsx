@@ -98,7 +98,7 @@ export function Body({ params_cc }: ThreadPageProps) {
             targetPage = String(locateRes.data.page);
           }
         } catch {
-          // fall back to page 1
+         targetPage = '1';
         }
       }
 

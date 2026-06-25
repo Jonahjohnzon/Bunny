@@ -17,7 +17,7 @@ export async function generateMetadata({ params, searchParams }: ThreadPageProps
   const [threadRes, locateOrListRes] = await Promise.all([
     ThreadService.get(threadId),
     highlightPostId
-      ? PostService.locate(threadId, highlightPostId)
+      ? PostService.locate(threadId, highlightPostId).catch(() => null)
       : PostService.list(threadId, 1),
   ]);
 
@@ -41,6 +41,7 @@ export async function generateMetadata({ params, searchParams }: ThreadPageProps
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       postsList = (pageRes as any)?.data?.posts ?? [];
     }
+    // if locateRes is null (post deleted), postsList stays [] and metadata falls back gracefully
   } else {
     postsList = locateRes?.data?.posts ?? [];
   }
@@ -62,7 +63,7 @@ export async function generateMetadata({ params, searchParams }: ThreadPageProps
     thread.author?.username ??
     "Bunny Forum";
 
-  const baseUrl = `https://bunnyforum.site/f/${subforumId}/${threadId}`; // 🔁 Replace with your actual domain
+  const baseUrl = `https://bunnyforum.site/f/${subforumId}/${threadId}`;
   const canonicalUrl = highlightPostId ? `${baseUrl}?post=${highlightPostId}` : baseUrl;
 
   const metaTitle = specificPost

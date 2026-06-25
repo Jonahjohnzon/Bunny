@@ -8,7 +8,14 @@ interface SubforumPageProps {
 
 export async function generateMetadata({ params }: SubforumPageProps): Promise<Metadata> {
   const { subforumId } = await params;
-  const data = await SubforumService.get(subforumId, 1);
+
+  let data = null;
+  try {
+    data = await SubforumService.get(subforumId, 1);
+  } catch {
+    // service threw (e.g. subforum deleted or network error) — fall back to default metadata
+  }
+
   const subforum = data?.data?.subforum;
 
   if (!subforum) {
@@ -22,7 +29,7 @@ export async function generateMetadata({ params }: SubforumPageProps): Promise<M
   const description =
     subforum.description ??
     `Browse threads and content in the ${title} subforum on Bunny Forum.`;
-  const url = `https://bunnyforum.site/f/${subforumId}`; // 🔁 Replace with your actual domain
+  const url = `https://bunnyforum.site/f/${subforumId}`;
 
   return {
     title: `${title} | Bunny Forum`,
