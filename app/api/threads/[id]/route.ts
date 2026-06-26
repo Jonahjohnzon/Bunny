@@ -18,7 +18,7 @@ export async function GET(
       await mongoosedb();
       const { id } = await params
       const { searchParams } = new URL(req.url);
-      const pagination = getPagination(searchParams, 20);
+      const pagination = getPagination(searchParams, 10);
       const { page, limit } = pagination;
 
       const thread = await Thread.findById(id)

@@ -5,7 +5,7 @@ import Post from "@/app/lib/models/Post";
 import Thread from "@/app/lib/models/ThreadSchema";
 import { ok, fail, serverError } from "@/app/lib/response";
 import Reaction from "@/app/lib/models/Reaction";
-const PAGE_SIZE = 3;
+const PAGE_SIZE = 10;
 import { withOptionalAuth  } from "@/app/lib/middleware/auth";
 import User from "@/app/lib/models/User";
 import '@/app/lib/models/Badge'
