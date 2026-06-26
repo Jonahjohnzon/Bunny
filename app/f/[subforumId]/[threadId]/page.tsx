@@ -6,22 +6,25 @@ import { PostService } from "@/app/services/posts";
 import { Post } from "@/app/MainPage/types/forum";
 
 interface ThreadPageProps {
-  params: { subforumId: string; threadId: string };
-  searchParams: { post?: string; page?: string };
+  params: Promise<{ subforumId: string; threadId: string }>;
+  searchParams: Promise<{ post?: string; page?: string }>;
 }
 
-export async function generateMetadata({ params, searchParams }: ThreadPageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+  searchParams,
+}: ThreadPageProps): Promise<Metadata> {
   const { subforumId, threadId } = await params;
   const { post: highlightPostId } = await searchParams;
 
-  const [threadRes, locateOrListRes] = await Promise.all([
-    ThreadService.get(threadId),
-    highlightPostId
-      ? PostService.locate(threadId, highlightPostId).catch(() => null)
-      : PostService.list(threadId, 1),
-  ]);
-
-  const thread = threadRes?.data?.thread;
+  // Fetch thread, fail gracefully
+  let thread = null;
+  try {
+    const threadRes = await ThreadService.get(threadId);
+    thread = threadRes?.data?.thread ?? null;
+  } catch {
+    // service error or thread not found
+  }
 
   if (!thread) {
     return {
@@ -30,24 +33,29 @@ export async function generateMetadata({ params, searchParams }: ThreadPageProps
     };
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const locateRes = locateOrListRes as any;
+  // Fetch posts, fail gracefully
   let postsList: Post[] = [];
-
-  if (highlightPostId) {
-    const locatedPage = locateRes?.data?.page;
-    if (locatedPage) {
-      const pageRes = await PostService.list(threadId, locatedPage);
+  try {
+    if (highlightPostId) {
+      const locateRes = await PostService.locate(threadId, highlightPostId).catch(() => null);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      postsList = (pageRes as any)?.data?.posts ?? [];
+      const locatedPage = (locateRes as any)?.data?.page;
+      if (locatedPage) {
+        const pageRes = await PostService.list(threadId, locatedPage).catch(() => null);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        postsList = (pageRes as any)?.data?.posts ?? [];
+      }
+    } else {
+      const listRes = await PostService.list(threadId, 1).catch(() => null);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      postsList = (listRes as any)?.data?.posts ?? [];
     }
-    // if locateRes is null (post deleted), postsList stays [] and metadata falls back gracefully
-  } else {
-    postsList = locateRes?.data?.posts ?? [];
+  } catch {
+    // posts unavailable — metadata will fall back gracefully
   }
 
   const specificPost = highlightPostId
-    ? postsList.find((p: Post) => p._id === highlightPostId) ?? null
+    ? (postsList.find((p: Post) => p._id === highlightPostId) ?? null)
     : null;
 
   const targetPost = specificPost ?? postsList[0] ?? null;
@@ -64,7 +72,9 @@ export async function generateMetadata({ params, searchParams }: ThreadPageProps
     "Bunny Forum";
 
   const baseUrl = `https://bunnyforum.site/f/${subforumId}/${threadId}`;
-  const canonicalUrl = highlightPostId ? `${baseUrl}?post=${highlightPostId}` : baseUrl;
+  const canonicalUrl = highlightPostId
+    ? `${baseUrl}?post=${highlightPostId}`
+    : baseUrl;
 
   const metaTitle = specificPost
     ? `${author} in "${title}" | Bunny Forum`
@@ -82,7 +92,9 @@ export async function generateMetadata({ params, searchParams }: ThreadPageProps
       siteName: "Bunny Forum",
       title: metaTitle,
       description,
-      publishedTime: new Date(specificPost?.createdAt ?? thread.createdAt).toISOString(),
+      publishedTime: new Date(
+        specificPost?.createdAt ?? thread.createdAt
+      ).toISOString(),
       modifiedTime: new Date(thread.updatedAt).toISOString(),
       authors: [author],
       images: [

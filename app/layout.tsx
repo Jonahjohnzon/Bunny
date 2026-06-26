@@ -87,7 +87,6 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
-        <meta name="monetag" content="f812d08ef1bb5d01aaa6bdb313c1d2e4" />
          <ThemeInit /> 
       </head>
       <Body>{children}</Body>

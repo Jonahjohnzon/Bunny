@@ -11,6 +11,7 @@ import { Thread, Post } from '../../../MainPage/types/forum';
 import Pagination from '@/app/MainPage/trendingThreads/components/Pagination';
 import AnnouncementBoard from '@/app/MainPage/trendingThreads/components/AnnouncementBoard';
 import Footer from '@/app/Footer';
+import { useRouter } from 'nextjs-toploader/app';
 
 interface ThreadPageProps {
   params_cc: { subforumId: string; threadId: string };
@@ -61,7 +62,7 @@ export function Body({ params_cc }: ThreadPageProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState("");
   const [highlightMissing, setHighlightMissing] = useState(false);
-
+  const router = useRouter();
   // pagination state
   const [pageSize, setPageSize] = useState(0);
   const [totalPosts, setTotalPosts] = useState(0);
@@ -102,16 +103,22 @@ export function Body({ params_cc }: ThreadPageProps) {
         }
       }
 
-      const [threadRes, postsRes] = await Promise.all([
+      let threadRes = null;
+      let postsRes = null;
+      try {
+       [threadRes, postsRes] = await Promise.all([
         ThreadService.get(threadId),
         PostService.list(threadId,  Number(targetPage)),
-      ]);
+      ]);} catch {
+        if (!cancelled) router.replace('/');
+       return;
+       }
 
       if (cancelled) return;
-
       if (!threadRes?.success) {
         setError("Thread not found.");
         setLoading(false);
+        router.replace('/');
         return;
       }
 
