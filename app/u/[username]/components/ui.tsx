@@ -115,10 +115,12 @@ interface StatPillProps {
 
 export function StatPill({ icon, label, value }: StatPillProps) {
   return (
-    <div className="flex flex-col items-center gap-0.5 px-4 py-2.5 bg-(--bg-surface) rounded-lg border border-(--border-soft)">
-      <div className="text-(--accent) mb-1">{icon}</div>
-      <div className="text-(--text-primary) font-bold text-base leading-none mb-1">{value}</div>
-      <div className="text-(--text-secondary) text-[12px] uppercase tracking-wide">{label}</div>
+    <div className="flex items-center gap-3 px-3 py-2.5 bg-(--bg-surface) rounded-lg border border-(--border-soft) sm:flex-col sm:items-center sm:gap-0.5 sm:px-4 sm:py-2.5">
+      <div className="text-(--accent) sm:mb-1">{icon}</div>
+      <div className="flex flex-col sm:items-center">
+        <div className="text-(--text-primary) font-bold text-base leading-none mb-0.5">{value}</div>
+        <div className="text-(--text-secondary) text-[11px] uppercase tracking-wide">{label}</div>
+      </div>
     </div>
   );
 }
