@@ -37,13 +37,13 @@ export function RecentThreads({ threads, page, totalPages, loading, onPageChange
           <ThreadCard key={thread.id} thread={thread} />
         ))}
       </div>
-      {totalPages > 1 && (
+      {/* {totalPages > 1 && (
         <Pagination
           currentPage={page}
           totalPages={totalPages}
           onPageChange={onPageChange}
         />
-      )}
+      )} */}
     </div>
   );
 }
