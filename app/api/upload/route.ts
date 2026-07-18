@@ -3,11 +3,14 @@ import { withAuth } from "@/app/lib/middleware/auth";
 import { NextRequest } from "next/server";
 import { ok, fail, serverError } from "@/app/lib/response";
 import { uploadBuffer } from "@/lib/cloudinary/helpers";
+import { compressEditorImage } from "@/lib/cloudinary/compress-editor";
 // TODO: swap in your real auth check — this route must require a logged-in user,
 // otherwise anyone can spend your Cloudinary quota. Adjust the import/usage to
 // match whatever your withPermission / getSessionUser helper looks like.
 
-const MAX_BYTES = 1 * 1024 * 1024; // 8MB
+export const runtime = "nodejs"; // sharp needs Node, not Edge
+
+const MAX_BYTES = 1 * 1024 * 1024; // 1MB
 const ALLOWED_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "image/gif"]);
 
 // POST /api/upload  (multipart/form-data, field name "file")
@@ -15,8 +18,6 @@ const ALLOWED_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "image/g
 export async function POST(req: NextRequest) {
     return withAuth(req, async (user) => {
   try {
-
-
     const form = await req.formData();
     const file = form.get("file");
 
@@ -24,8 +25,15 @@ export async function POST(req: NextRequest) {
     if (!ALLOWED_TYPES.has(file.type)) return fail("Unsupported file type. Use PNG, JPEG, WEBP, or GIF.");
     if (file.size > MAX_BYTES) return fail("File too large. Max 1MB.");
 
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    const rawBuffer = Buffer.from(await file.arrayBuffer());
+
+    let buffer: Buffer;
+    let outMimeType = file.type;
+    try {
+      ({ buffer, mimeType: outMimeType } = await compressEditorImage(rawBuffer, file.type));
+    } catch {
+      return fail("Could not process image.");
+    }
 
     const result = await uploadBuffer(buffer, { folder: "forum/editor" });
 

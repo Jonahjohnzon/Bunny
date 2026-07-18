@@ -5,10 +5,13 @@ import mongoosedb from "@/app/lib/db/db";
 import User from "@/app/lib/models/User";
 import { ok, fail, serverError } from "@/app/lib/response";
 import { uploadBuffer, deleteIfOwned } from "@/lib/cloudinary/helpers";
+import { compressImage } from "@/lib/cloudinary/compress";
 // TODO: same note as /api/upload — wire this to your real session/auth helper.
 import { withAuth } from "@/app/lib/middleware/auth";
 
-const MAX_BYTES = 1 * 1024 * 1024; // 8MB
+export const runtime = "nodejs"; // sharp needs Node, not Edge
+
+const MAX_BYTES = 1 * 1024 * 1024; // 1MB
 const ALLOWED_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "image/gif"]);
 const ALLOWED_FIELDS = new Set(["avatar", "banner"]);
 
@@ -41,8 +44,15 @@ export async function POST(req: NextRequest) {
     // Delete old image first (no-op if it's an external URL we don't own).
     await deleteIfOwned(oldUrl);
 
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    const rawBuffer = Buffer.from(await file.arrayBuffer());
+
+    let buffer: Buffer;
+    try {
+      ({ buffer } = await compressImage(rawBuffer, file.type, field as "avatar" | "banner"));
+    } catch {
+      return fail("Could not process image.");
+    }
+
     const folder = field === "avatar" ? "forum/avatars" : "forum/banners";
 
     const result = await uploadBuffer(buffer, { folder, publicId: String(user._id) });
