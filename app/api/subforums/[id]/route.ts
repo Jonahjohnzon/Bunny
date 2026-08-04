@@ -7,7 +7,13 @@ import Thread from "@/app/lib/models/ThreadSchema";
 import Post from "@/app/lib/models/Post";
 import { withPermission, withOptionalAuth } from "@/app/lib/middleware/auth";
 import { ok, fail, serverError, getPagination } from "@/app/lib/response";
-import { cached, subforumCacheKey, bumpVersion, bumpVersions } from "@/app/lib/cache";
+import {
+  cached,
+  subforumCacheKey,
+  bumpVersion,
+  bumpVersions,
+  invalidateCategoryCaches,
+} from "@/app/lib/cache";
 import "@/app/lib/models/CategorySchema";
 
 // GET /api/subforums/[id]
@@ -62,6 +68,10 @@ export async function DELETE(
         await bumpVersion("subforum", subforum.parent.toString());
       }
 
+      // The categories list (and single-category endpoint) embed the
+      // subforum tree, so a deleted subforum must invalidate those too.
+      await invalidateCategoryCaches(subforum.category?.toString());
+
       return ok({ message: `Deleted ${allIds.length} subforum(s).`, deleted: true });
     } catch (err) {
       return serverError(err, "DELETE /api/subforums/[id]");
@@ -99,6 +109,13 @@ export async function PATCH(
       if (updated.parent) {
         await bumpVersion("subforum", updated.parent.toString());
       }
+
+      // "category" isn't in the allowed-fields list above, so `updated.category`
+      // is always the subforum's real, unchanged category — safe to use here.
+      // Any of the allowed edits (name, order, icon, isPrivate, isReadOnly,
+      // leadsToThreads) can change what the categories list / single-category
+      // view renders for this subforum, since both embed the subforum tree.
+      await invalidateCategoryCaches(updated.category?.toString());
 
       return ok(updated);
     } catch (err) {

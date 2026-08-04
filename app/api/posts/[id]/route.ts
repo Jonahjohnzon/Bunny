@@ -7,12 +7,7 @@ import { withAuth, withPermission } from "../../../lib/middleware/auth";
 import { ok, fail, serverError } from "../../../lib/response";
 import Thread from "@/app/lib/models/ThreadSchema";
 import Subforum from "@/app/lib/models/SubforumSchema";
-
-
-
-
-
-
+import { bumpThreadVersion, bumpVersion } from "@/app/lib/cache";
 
 // DELETE /api/posts/[id] — soft delete
 export async function DELETE(
@@ -40,17 +35,31 @@ export async function DELETE(
         deletedBy: user._id,
       });
 
+      // Need the thread to get its actual subforum — do this before the
+      // decrements below so we have subforum id for the cache bump too.
+      const thread = await Thread.findById(post.thread).select("subforum");
+
       // Decrement counts
       await Thread.findByIdAndUpdate(post.thread, { $inc: { replyCount: -1 } });
-      await Subforum.findOneAndUpdate(
-        { "lastPost.thread": post.thread },
-        { $inc: { postCount: -1 } }
-      );
+      if (thread?.subforum) {
+        // NOTE: previously this matched on `{ "lastPost.thread": post.thread }`,
+        // which only updates a subforum if this thread happens to currently be
+        // its lastPost — so postCount silently failed to decrement any other
+        // time. Using the post's actual thread->subforum instead.
+        await Subforum.findByIdAndUpdate(thread.subforum, { $inc: { postCount: -1 } });
+      }
       await User.findByIdAndUpdate(post.author, { $inc: { postCount: -1 } });
 
       // If this was a nested reply, decrement its parent's child-reply count too
       if (post.parentPost) {
         await Post.findByIdAndUpdate(post.parentPost, { $inc: { replyCount: -1 } });
+      }
+
+      // A deleted post disappears from the thread/threadPosts payload, and
+      // the subforum's postCount just changed too.
+      await bumpThreadVersion(post.thread.toString());
+      if (thread?.subforum) {
+        await bumpVersion("subforum", thread.subforum.toString());
       }
 
       return ok({ message: "Post deleted." });
@@ -94,10 +103,12 @@ export async function PATCH(
         { new: true }
       ).populate("author", "username avatar role customTitle postCount avatarEffect usernameEffect");
 
+      // Edited content is embedded in the cached thread/threadPosts payload.
+      await bumpThreadVersion(post.thread.toString());
+
       return ok(updated);
     } catch (err) {
       return serverError(err, "PATCH /api/posts/[id]");
     }
   });
 }
-

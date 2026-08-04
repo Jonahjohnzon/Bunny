@@ -10,7 +10,7 @@ import User from "@/app/lib/models/User";
 import { withAuth } from "../../lib/middleware/auth";
 import { created, fail, serverError } from "../../lib/response";
 import { sendThreadMilestoneEmail } from "@/app/lib/mailer";
-import { bumpThreadVersion, bumpVersion } from "@/app/lib/cache";
+import { bumpThreadVersion, bumpVersion, bumpCategoryListVersion } from "@/app/lib/cache";
 
 const MILESTONES = [10, 25, 50, 100, 250, 500, 1000, 2500, 5000];
 
@@ -81,8 +81,13 @@ export async function POST(req: Request) {
         lastPost: { thread: body.threadId, user: user._id, createdAt: new Date() },
       });
 
+      // New reply invalidates: the thread's own cache (new post won't show
+      // in thread/threadPosts otherwise), the subforum's cache (its
+      // postCount/lastPost preview just changed), and the categories list,
+      // which also embeds each subforum's lastPost.
       await bumpThreadVersion(body.threadId);
       await bumpVersion("subforum", thread.subforum.toString());
+      await bumpCategoryListVersion();
 
       // Update user post count
       await User.findByIdAndUpdate(user._id, { $inc: { postCount: 1 } });
@@ -207,20 +212,22 @@ export async function POST(req: Request) {
         }
       }
 
-      // Notify @mentions — find @username patterns in content
-      const mentions = body.content.match(/@(\w+)/g) ?? [];
-      for (const mention of mentions) {
-        const username = mention.slice(1);
-        const mentioned = await User.findOne({ username }).select("_id");
-        if (mentioned && mentioned._id.toString() !== user._id.toString()) {
-          await Notification.create({
-            user: mentioned._id,
+      const mentions = [...new Set((body.content.match(/@(\w+)/g) ?? []).map((m: string) => m.slice(1)))];
+
+      if (mentions.length) {
+        const mentionedUsers = await User.find({ username: { $in: mentions } }).select("_id username");
+
+        const notifs = mentionedUsers
+          .filter((u) => u._id.toString() !== user._id.toString())
+          .map((u) => ({
+            user: u._id,
             type: "mention",
             actor: user._id,
             thread: body.threadId,
             post: post._id,
-          });
-        }
+          }));
+
+        if (notifs.length) await Notification.insertMany(notifs);
       }
 
       // ── Thread milestone email (10, 25, 50, 100... replies) ─────────────
