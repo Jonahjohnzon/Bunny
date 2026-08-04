@@ -5,6 +5,7 @@ import mongoosedb from "@/app/lib/db/db";
 import Announcement from "@/app/lib/models/Announcement";
 import { withPermission } from "@/app/lib/middleware/auth";
 import { ok, fail, serverError } from "@/app/lib/response";
+import { bumpAnnouncementListVersion } from "@/app/lib/cache";
 
 // PATCH /api/announcements/[id]
 export async function PATCH(
@@ -53,6 +54,10 @@ export async function PATCH(
       const updated = await Announcement.findByIdAndUpdate(id, update, { new: true })
         .populate("createdBy", "username");
 
+      // Any of these fields (message, type, isActive, startsAt, expiresAt)
+      // can change whether/how this announcement shows in the public list.
+      await bumpAnnouncementListVersion();
+
       return ok(updated);
     } catch (err) {
       return serverError(err, "PATCH /api/announcements/[id]");
@@ -78,6 +83,9 @@ export async function DELETE(
       if (!existing) return fail("Announcement not found.", 404);
 
       await Announcement.findByIdAndDelete(id);
+
+      await bumpAnnouncementListVersion();
+
       return ok({ deleted: true });
     } catch (err) {
       return serverError(err, "DELETE /api/announcements/[id]");

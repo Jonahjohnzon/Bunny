@@ -7,7 +7,7 @@ export const redis = new Redis({
 
 // Default time-to-live for cached entries, in seconds.
 // Acts as a safety net in case a mutation forgets to bump a version.
-const DEFAULT_TTL_SECONDS = 60 * 10; // 24 hours
+const DEFAULT_TTL_SECONDS = 60 * 60; // 24 hours
 
 // ---------------------------------------------------------------------------
 // Versioning

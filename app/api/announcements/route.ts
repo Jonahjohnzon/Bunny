@@ -7,22 +7,27 @@ import { withPermission } from "@/app/lib/middleware/auth";
 import { ok, created, fail, serverError } from "@/app/lib/response";
 import User from "@/app/lib/models/User";
 import { sendAnnouncementEmail } from "@/app/lib/mailer";
+import { cached, announcementListCacheKey, bumpAnnouncementListVersion } from "@/app/lib/cache";
+
+async function fetchActiveAnnouncements() {
+  await mongoosedb();
+  const now = new Date();
+
+  return Announcement.find({
+    isActive: true,
+    startsAt: { $lte: now },
+    $or: [{ expiresAt: null }, { expiresAt: { $gt: now } }],
+  })
+    .sort({ createdAt: -1 })
+    .populate("createdBy", "username")
+    .lean();
+}
 
 // GET /api/announcements — public, returns only currently-live announcements
 export async function GET() {
   try {
-    await mongoosedb();
-    const now = new Date();
-
-    const announcements = await Announcement.find({
-      isActive: true,
-      startsAt: { $lte: now },
-      $or: [{ expiresAt: null }, { expiresAt: { $gt: now } }],
-    })
-      .sort({ createdAt: -1 })
-      .populate("createdBy", "username")
-      .lean();
-
+    const keyParts = await announcementListCacheKey();
+    const announcements = await cached(keyParts, fetchActiveAnnouncements);
     return ok({ announcements });
   } catch (err) {
     return serverError(err, "GET /api/announcements");
@@ -99,6 +104,9 @@ export async function POST(req: Request) {
         expiresAt,
         isActive: body.isActive ?? true,
       });
+
+      // New announcement changes what the public list shows.
+      await bumpAnnouncementListVersion();
 
       // Only email out on explicit request — not every banner deserves an inbox hit.
       // Admin passes { notifyByEmail: true } for the ones that actually matter.
