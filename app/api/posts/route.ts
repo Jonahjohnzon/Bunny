@@ -10,6 +10,7 @@ import User from "@/app/lib/models/User";
 import { withAuth } from "../../lib/middleware/auth";
 import { created, fail, serverError } from "../../lib/response";
 import { sendThreadMilestoneEmail } from "@/app/lib/mailer";
+import { bumpThreadVersion, bumpVersion } from "@/app/lib/cache";
 
 const MILESTONES = [10, 25, 50, 100, 250, 500, 1000, 2500, 5000];
 
@@ -79,6 +80,9 @@ export async function POST(req: Request) {
         $inc: { postCount: 1 },
         lastPost: { thread: body.threadId, user: user._id, createdAt: new Date() },
       });
+
+      await bumpThreadVersion(body.threadId);
+      await bumpVersion("subforum", thread.subforum.toString());
 
       // Update user post count
       await User.findByIdAndUpdate(user._id, { $inc: { postCount: 1 } });
