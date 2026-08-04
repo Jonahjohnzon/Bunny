@@ -5,29 +5,33 @@ import mongoosedb from "@/app/lib/db/db";
 import Subforum from "@/app/lib/models/SubforumSchema";
 import Thread from "@/app/lib/models/ThreadSchema";
 import Post from "@/app/lib/models/Post";
-import {  withPermission, withOptionalAuth } from "@/app/lib/middleware/auth";
-import { ok,  fail, serverError, getPagination } from "@/app/lib/response";
-import "@/app/lib/models/CategorySchema"
+import { withPermission, withOptionalAuth } from "@/app/lib/middleware/auth";
+import { ok, fail, serverError, getPagination } from "@/app/lib/response";
+import { cached, subforumCacheKey, bumpVersion, bumpVersions } from "@/app/lib/cache";
+import "@/app/lib/models/CategorySchema";
 
 // GET /api/subforums/[id]
 // Returns subforum + either threads (leadsToThreads=true) or children (false)
+// Cached in Redis, keyed by id + page + limit + current version.
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  return withOptionalAuth(req, async (user) => {
-  try {
-    const { id } = await params;
-    const { searchParams } = new URL(req.url);
-    const { page, limit } = getPagination(searchParams, 10);
+  return withOptionalAuth(req, async () => {
+    try {
+      const { id } = await params;
+      const { searchParams } = new URL(req.url);
+      const { page, limit } = getPagination(searchParams, 10);
 
-    const data = await getSubforumPageData(id, page, limit);
-    if (!data) return fail("Subforum not found.", 404);
+      const keyParts = await subforumCacheKey(id, page, limit);
+      const data = await cached(keyParts, () => getSubforumPageData(id, page, limit));
 
-    return ok(data);
-  } catch (err) {
-    return serverError(err, "GET /api/subforums/[id]");
-  }})
+      if (!data) return fail("Subforum not found.", 404);
+      return ok(data);
+    } catch (err) {
+      return serverError(err, "GET /api/subforums/[id]");
+    }
+  });
 }
 
 export async function DELETE(
@@ -37,7 +41,7 @@ export async function DELETE(
   return withPermission(req, "canEditAnyPost", async () => {
     try {
       await mongoosedb();
-      const { id } = await params
+      const { id } = await params;
       const subforum = await Subforum.findById(id);
       if (!subforum) return fail("Subforum not found.", 404);
 
@@ -50,6 +54,13 @@ export async function DELETE(
       await Post.deleteMany({ thread: { $in: threadIds } });
       await Thread.deleteMany({ subforum: { $in: allIds } });
       await Subforum.deleteMany({ _id: { $in: allIds } });
+
+      // Invalidate every deleted subforum's cache, plus the parent (its
+      // child list just changed) if this wasn't a top-level subforum.
+      await bumpVersions("subforum", allIds);
+      if (subforum.parent) {
+        await bumpVersion("subforum", subforum.parent.toString());
+      }
 
       return ok({ message: `Deleted ${allIds.length} subforum(s).`, deleted: true });
     } catch (err) {
@@ -66,7 +77,7 @@ export async function PATCH(
   return withPermission(req, "canEditAnyPost", async () => {
     try {
       await mongoosedb();
-      const { id } = await params
+      const { id } = await params;
       const body = await req.json();
 
       const allowed = [
@@ -81,13 +92,20 @@ export async function PATCH(
 
       const updated = await Subforum.findByIdAndUpdate(id, updates, { new: true });
       if (!updated) return fail("Subforum not found.", 404);
+
+      await bumpVersion("subforum", id);
+      // If this subforum moved to a new parent, or reordering affects the
+      // old parent's child listing, invalidate that too.
+      if (updated.parent) {
+        await bumpVersion("subforum", updated.parent.toString());
+      }
+
       return ok(updated);
     } catch (err) {
       return serverError(err, "PATCH /api/subforums/[id]");
     }
   });
 }
-
 
 async function collectDescendantIds(parentId: string): Promise<string[]> {
   const children = await Subforum.find({ parent: parentId }).select("_id").lean();

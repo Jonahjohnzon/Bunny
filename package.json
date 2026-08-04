@@ -27,6 +27,7 @@
     "@tiptap/starter-kit": "^3.27.2",
     "@tiptap/suggestion": "^3.27.2",
     "@types/nodemailer": "^8.0.1",
+    "@upstash/redis": "^1.38.2",
     "axios": "^1.18.1",
     "bcrypt": "^6.0.0",
     "cloudinary": "^2.10.0",

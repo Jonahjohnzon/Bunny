@@ -6,6 +6,7 @@ import Category from "@/app/lib/models/CategorySchema";
 import Subforum from "@/app/lib/models/SubforumSchema";
 import { withPermission } from "@/app/lib/middleware/auth";
 import { ok, created, fail, serverError } from "@/app/lib/response";
+import { cached, categoryListCacheKey, bumpCategoryListVersion } from "@/app/lib/cache";
 import "@/app/lib/models/ThreadSchema"
 import "@/app/lib/models/User"
 type SubforumTreeItem = {
@@ -71,59 +72,65 @@ function buildSubforumTree<T extends SubforumTreeItem>(subforums: T[], parentId:
     }));
 }
 
+async function fetchCategoriesWithSubforums() {
+  await mongoosedb();
+
+  const [categories, allSubforums, postCounts] = await Promise.all([
+    Category.find().sort({ order: 1 }).lean(),
+    Subforum.find()
+      .sort({ order: 1 })
+      .populate("lastPost.user",   "avatar username usernameEffect avatarEffect")
+      .populate("lastPost.thread", "title")
+      .populate("allowedRoles",    "name color")
+      .lean(),
+    // Live post count per subforum, joined through Thread since Post only stores `thread`
+    Post.aggregate([
+      { $match: { isDeleted: { $ne: true } } },
+      {
+        $lookup: {
+          from: "threads",
+          localField: "thread",
+          foreignField: "_id",
+          as: "threadInfo",
+        },
+      },
+      { $unwind: "$threadInfo" },
+      {
+        $group: {
+          _id: "$threadInfo.subforum",
+          count: { $sum: 1 },
+        },
+      },
+    ]),
+  ]);
+
+  // Map: subforumId (string) -> live post count
+  const postCountMap = new Map<string, number>(
+    postCounts.map((p) => [p._id.toString(), p.count])
+  );
+
+  return categories.map((cat) => {
+    const catSubs = allSubforums
+      .filter((s) => s.category.toString() === cat._id.toString())
+      .map((s) => ({
+        ...s,
+        lastPost: shapeLastPost(s.lastPost),
+        postCount: postCountMap.get(s._id.toString()) ?? 0,
+      }));
+
+    const tree = buildSubforumTree(catSubs, null);
+    return { ...cat, subforums: tree };
+  });
+}
+
 // GET /api/categories
-// Returns every category with its subforums nested as a tree, each carrying a flattened lastPost
+// Returns every category with its subforums nested as a tree, each carrying a flattened lastPost.
+// Cached in Redis — invalidated whenever a category OR a subforum is created/updated/deleted,
+// since this response embeds subforum trees, lastPost, and live post counts.
 export async function GET() {
   try {
-    await mongoosedb();
-
-    const [categories, allSubforums, postCounts] = await Promise.all([
-      Category.find().sort({ order: 1 }).lean(),
-      Subforum.find()
-        .sort({ order: 1 })
-        .populate("lastPost.user",   "avatar username usernameEffect avatarEffect")
-        .populate("lastPost.thread", "title")
-        .populate("allowedRoles",    "name color")
-        .lean(),
-      // Live post count per subforum, joined through Thread since Post only stores `thread`
-      Post.aggregate([
-        { $match: { isDeleted: { $ne: true } } },
-        {
-          $lookup: {
-            from: "threads",
-            localField: "thread",
-            foreignField: "_id",
-            as: "threadInfo",
-          },
-        },
-        { $unwind: "$threadInfo" },
-        {
-          $group: {
-            _id: "$threadInfo.subforum",
-            count: { $sum: 1 },
-          },
-        },
-      ]),
-    ]);
-
-    // Map: subforumId (string) -> live post count
-    const postCountMap = new Map<string, number>(
-      postCounts.map((p) => [p._id.toString(), p.count])
-    );
-
-    const result = categories.map((cat) => {
-      const catSubs = allSubforums
-        .filter((s) => s.category.toString() === cat._id.toString())
-        .map((s) => ({
-          ...s,
-          lastPost: shapeLastPost(s.lastPost),
-          postCount: postCountMap.get(s._id.toString()) ?? 0,
-        }));
-
-      const tree = buildSubforumTree(catSubs, null);
-      return { ...cat, subforums: tree };
-    });
-
+    const keyParts = await categoryListCacheKey();
+    const result = await cached(keyParts, fetchCategoriesWithSubforums);
     return ok(result);
   } catch (err) {
     return serverError(err, "GET /api/categories");
@@ -146,10 +153,12 @@ export async function POST(req: Request) {
         order:       body.order ?? count,
         accentColor: body.accentColor ?? '#0000FF',
       });
+
+      await bumpCategoryListVersion();
+
       return created(category);
     } catch (err) {
       return serverError(err, "POST /api/categories");
     }
   });
 }
-

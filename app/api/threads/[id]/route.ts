@@ -8,8 +8,39 @@ import { withAuth, withOptionalAuth } from "../../../lib/middleware/auth";
 import { ok, fail, serverError, getPagination } from "../../../lib/response";
 import User from "@/app/lib/models/User";
 import { IRole } from "@/app/lib/models/Role";
+import {
+  cached,
+  threadCacheKey,
+  bumpThreadVersion,
+  bumpVersion,
+  bumpCategoryListVersion,
+} from "@/app/lib/cache";
+
+async function fetchThreadWithPosts(id: string, page: number, limit: number) {
+  const thread = await Thread.findById(id)
+    .populate("author", "username avatar avatarEffect usernameEffet role customTitle postCount joinedAt signature")
+    .populate("subforum", "name category")
+    .lean();
+
+  if (!thread || thread.isDeleted) return null;
+
+  const filter = { thread: id, isDeleted: false };
+  const total = await Post.countDocuments(filter);
+
+  const posts = await Post.find(filter)
+    .sort({ createdAt: 1 })
+    .skip((page - 1) * limit)
+    .limit(limit)
+    .populate("author", "username avatar avatarEffect usernameEffet role customTitle postCount joinedAt signature")
+    .populate("quotedPost", "content author")
+    .lean();
+
+  return { thread, posts, total, page, pages: Math.ceil(total / limit) };
+}
 
 // GET /api/threads/[id] — thread info + paginated posts
+// Cached per thread+page, invalidated via the "thread" version — bumped on
+// title/pin/lock edits, poll votes, and (elsewhere) post create/edit/delete.
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -22,28 +53,20 @@ export async function GET(
       const pagination = getPagination(searchParams, 10);
       const { page, limit } = pagination;
 
-      const thread = await Thread.findById(id)
-        .populate("author", "username avatar avatarEffect usernameEffet role customTitle postCount joinedAt signature")
-        .populate("subforum", "name category")
-        .lean();
+      const keyParts = await threadCacheKey(id, page, limit);
+      const result = await cached(keyParts, () => fetchThreadWithPosts(id, page, limit));
 
-      if (!thread || thread.isDeleted) return fail("Thread not found.", 404);
+      if (!result) return fail("Thread not found.", 404);
 
-      // Increment views
+      // View count is a real analytics signal, not a cacheable read — always
+      // increment it regardless of whether the response above was a cache
+      // hit. The count shown in a cached response may lag slightly until
+      // the cache entry expires or the thread version bumps; that's an
+      // acceptable trade-off for not writing on every single page load's
+      // read path either way (the write itself always still happens here).
       await Thread.findByIdAndUpdate(id, { $inc: { views: 1 } });
 
-      const filter = { thread: id, isDeleted: false };
-      const total = await Post.countDocuments(filter);
-
-      const posts = await Post.find(filter)
-        .sort({ createdAt: 1 })
-        .skip((page - 1) * limit)
-        .limit(limit)
-        .populate("author", "username avatar avatarEffect usernameEffet role customTitle postCount joinedAt signature")
-        .populate("quotedPost", "content author")
-        .lean();
-
-      return ok({ thread, posts, total, page, pages: Math.ceil(total / limit) });
+      return ok(result);
     } catch (err) {
       return serverError(err, "GET /api/threads/[id]");
     }
@@ -151,6 +174,11 @@ export async function POST(req: Request) {
         await session.endSession();
       }
 
+      // New thread changes the subforum's lastPost/threadCount, which the
+      // subforum page and the categories list both surface.
+      await bumpVersion("subforum", subforumId);
+      await bumpCategoryListVersion();
+
       return ok({ thread, firstPost }, 201);
     } catch (err) {
       return serverError(err, "POST /api/threads");
@@ -225,6 +253,17 @@ export async function PATCH(
       if (Object.keys(updates).length === 0) return fail("Nothing to update.");
 
       const updated = await Thread.findByIdAndUpdate(id, updates, { new: true });
+
+      await bumpThreadVersion(id);
+
+      // A title edit can change what's shown in the subforum's "last post"
+      // preview on the categories list, if this happens to be the current
+      // last post — cheaper to invalidate conservatively than to check.
+      if (updates.title !== undefined) {
+        await bumpVersion("subforum", thread.subforum.toString());
+        await bumpCategoryListVersion();
+      }
+
       return ok(updated);
     } catch (err) {
       return serverError(err, "PATCH /api/threads/[id]");
@@ -261,6 +300,10 @@ export async function DELETE(
       await Subforum.findByIdAndUpdate(thread.subforum, {
         $inc: { threadCount: -1, postCount: -postCount },
       });
+
+      await bumpThreadVersion(id);
+      await bumpVersion("subforum", thread.subforum.toString());
+      await bumpCategoryListVersion();
 
       return ok({ message: "Thread deleted." });
     } catch (err) {
