@@ -4,6 +4,7 @@ import User from "@/app/lib/models/User";
 import Thread from "@/app/lib/models/ThreadSchema";
 import Post from "@/app/lib/models/Post";
 import { ok, serverError } from "../../../lib/response";
+import { cachedForumStats } from "../../../lib/cache";
 
 const ONLINE_WINDOW_MS   = 30 * 60 * 1000;       // 30 minutes
 const TRENDING_WINDOW_MS = 48 * 60 * 60 * 1000;  // 48 hours
@@ -105,15 +106,7 @@ async function getTrendingThreads(since: Date) {
   }
 }
 
-// ─── route handler ────────────────────────────────────────────────────────────
-
-export async function GET() {
-  try {
-    await mongoosedb();
-  } catch (err) {
-    return serverError(err, "GET /api/forum/stats — db connection");
-  }
-
+async function fetchForumStats() {
   const onlineSince   = new Date(Date.now() - ONLINE_WINDOW_MS);
   const trendingSince = new Date(Date.now() - TRENDING_WINDOW_MS);
 
@@ -134,7 +127,7 @@ export async function GET() {
     getTrendingThreads(trendingSince),
   ]);
 
-  return ok({
+  return {
     stats: {
       totalThreads,
       totalPosts,
@@ -146,5 +139,22 @@ export async function GET() {
       total: onlineUsers.length,
     },
     trendingThreads,
-  });
+  };
+}
+
+// ─── route handler ────────────────────────────────────────────────────────────
+//
+// No version-based invalidation here on purpose — "online in the last 30
+// minutes" and "trending in the last 48 hours" are floating windows that go
+// stale on their own regardless of any single write, so a short TTL is the
+// whole invalidation strategy.
+export async function GET() {
+  try {
+    await mongoosedb();
+  } catch (err) {
+    return serverError(err, "GET /api/forum/stats — db connection");
+  }
+
+  const data = await cachedForumStats(fetchForumStats);
+  return ok(data);
 }

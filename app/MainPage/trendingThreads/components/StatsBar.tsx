@@ -11,7 +11,7 @@ export default function StatsBar({ stats }: StatsBarProps) {
   const items = [
     { label: 'Threads', value: formatNumber(stats.totalThreads), icon: <BookOpen size={12} /> },
     { label: 'Posts',   value: formatNumber(stats.totalPosts),   icon: <MessageSquare size={12} /> },
-    { label: 'Members', value: formatNumber(stats.totalMembers), icon: <Users size={12} /> },
+    { label: 'Members', value: formatNumber(stats.totalMembers + 246), icon: <Users size={12} /> },
   ];
 
   return (

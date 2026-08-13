@@ -4,6 +4,7 @@ import mongoosedb from "@/app/lib/db/db";
 import Thread from "@/app/lib/models/ThreadSchema";
 import { withAuth } from "@/app/lib/middleware/auth";
 import { ok, fail, serverError } from "@/app/lib/response";
+import { bumpThreadVersion } from "@/app/lib/cache";
 
 // POST /api/threads/[id]/vote — cast or change a poll vote
 export async function PATCH(
@@ -46,6 +47,10 @@ export async function PATCH(
       }
 
       await thread.save();
+
+      // Poll results are embedded in the cached thread-detail response.
+      await bumpThreadVersion(id);
+
       return ok(thread.poll);
     } catch (err) {
       return serverError(err, "POST /api/threads/[id]/vote");

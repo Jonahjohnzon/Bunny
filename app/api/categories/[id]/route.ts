@@ -5,6 +5,12 @@ import Category from "@/app/lib/models/CategorySchema";
 import Subforum from "@/app/lib/models/SubforumSchema";
 import { withPermission } from "../../../lib/middleware/auth";
 import { ok, fail, serverError } from "../../../lib/response";
+import {
+  cached,
+  categoryCacheKey,
+  bumpVersion,
+  bumpCategoryListVersion,
+} from "../../../lib/cache";
 
 // GET /api/categories/:id — fetch one category
 type SubforumTreeItem = {
@@ -25,37 +31,41 @@ function buildSubforumTree(flat: SubforumTreeItem[], parentId: string | null = n
     }));
 }
 
-// GET /api/categories/:id — fetch one category with its subforums nested as a tree
+async function fetchCategoryWithSubforums(id: string) {
+  await mongoosedb();
+
+  const category = await Category.findById(id).lean();
+  if (!category) return null;
+
+  const flatSubforums = await Subforum.find({ category: id })
+    .sort({ order: 1 })
+    .lean();
+
+  const subforums = buildSubforumTree(flatSubforums);
+
+  return { ...category, subforums };
+}
+
+// GET /api/categories/:id — fetch one category with its subforums nested as a tree.
+// Cached in Redis — invalidated when this category is patched/deleted, or when any
+// of its subforums change (since the response embeds the subforum tree).
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-
     await mongoosedb();
     const { id } = await params;
-    
 
-    const category = await Category.findById(id).lean();
-    if (!category) return fail("Category not found.", 404);
+    const keyParts = await categoryCacheKey(id);
+    const result = await cached(keyParts, () => fetchCategoryWithSubforums(id));
 
-  
-    const flatSubforums = await Subforum.find({ category: id })
-      .sort({ order: 1 })
-      .lean();
-     
-    const subforums = buildSubforumTree(flatSubforums);
-
-    return ok({ ...category, subforums });
+    if (!result) return fail("Category not found.", 404);
+    return ok(result);
   } catch (err) {
     return serverError(err, "GET /api/categories/:id");
   }
 }
-
-// PATCH /api/categories/:id — update name, description, icon, order (admin only)
-
-
-
 
 // PATCH /api/categories/[id]
 export async function PATCH(
@@ -75,6 +85,10 @@ export async function PATCH(
       if (!Object.keys(updates).length) return fail("Nothing to update.");
       const updated = await Category.findByIdAndUpdate(id, updates, { new: true });
       if (!updated) return fail("Category not found.", 404);
+
+      await bumpVersion("category", id);
+      await bumpCategoryListVersion();
+
       return ok(updated);
     } catch (err) {
       return serverError(err, "PATCH /api/categories/[id]");
@@ -96,6 +110,10 @@ export async function DELETE(
         return fail("Remove or move all subforums before deleting this category.", 400);
       }
       await Category.findByIdAndDelete(id);
+
+      await bumpVersion("category", id);
+      await bumpCategoryListVersion();
+
       return ok({ deleted: true });
     } catch (err) {
       return serverError(err, "DELETE /api/categories/[id]");

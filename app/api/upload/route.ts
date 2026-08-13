@@ -1,36 +1,39 @@
-"use server";
 import { withAuth } from "@/app/lib/middleware/auth";
 import { NextRequest } from "next/server";
 import { ok, fail, serverError } from "@/app/lib/response";
 import { uploadBuffer } from "@/lib/cloudinary/helpers";
-// TODO: swap in your real auth check — this route must require a logged-in user,
-// otherwise anyone can spend your Cloudinary quota. Adjust the import/usage to
-// match whatever your withPermission / getSessionUser helper looks like.
+import { compressEditorImage } from "@/lib/cloudinary/compress-editor";
 
-const MAX_BYTES = 1 * 1024 * 1024; // 8MB
+export const runtime = "nodejs"; // sharp needs Node, not Edge
+
+const MAX_BYTES = 1 * 1024 * 1024; // 1MB
 const ALLOWED_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "image/gif"]);
 
-// POST /api/upload  (multipart/form-data, field name "file")
-// Used for images inserted into post/thread content via the editor.
 export async function POST(req: NextRequest) {
-    return withAuth(req, async (user) => {
-  try {
+  return withAuth(req, async (user) => {
+    try {
+      const form = await req.formData();
+      const file = form.get("file");
 
+      if (!(file instanceof File)) return fail("No file provided.");
+      if (!ALLOWED_TYPES.has(file.type)) return fail("Unsupported file type. Use PNG, JPEG, WEBP, or GIF.");
+      if (file.size > MAX_BYTES) return fail("File too large. Max 1MB.");
 
-    const form = await req.formData();
-    const file = form.get("file");
+      const rawBuffer = Buffer.from(await file.arrayBuffer());
 
-    if (!(file instanceof File)) return fail("No file provided.");
-    if (!ALLOWED_TYPES.has(file.type)) return fail("Unsupported file type. Use PNG, JPEG, WEBP, or GIF.");
-    if (file.size > MAX_BYTES) return fail("File too large. Max 1MB.");
+      let buffer: Buffer;
+      let outMimeType = file.type;
+      try {
+        ({ buffer, mimeType: outMimeType } = await compressEditorImage(rawBuffer, file.type));
+      } catch {
+        return fail("Could not process image.");
+      }
 
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+      const result = await uploadBuffer(buffer, { folder: "forum/editor" });
 
-    const result = await uploadBuffer(buffer, { folder: "forum/editor" });
-
-    return ok({ url: result.secure_url, publicId: result.public_id });
-  } catch (err) {
-    return serverError(err, "POST /api/upload");
-  }})
+      return ok({ url: result.secure_url, publicId: result.public_id });
+    } catch (err) {
+      return serverError(err, "POST /api/upload");
+    }
+  });
 }

@@ -6,7 +6,6 @@ import { UserService } from '@/app/services/users';
 import { UserProfile, EditTab } from '../../types';
 import { UsernameEffectKey } from '../ui/UsernameEffect';
 import { AvatarEffectKey } from '@/app/MainPage/trendingThreads/components/Avatar';
-import { store } from '@/app/store';
 import { NotificationsTab } from './EditTabs';
 import { storeHydrator } from '@/app/MainPage/StoreHydrator';
 
